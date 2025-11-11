@@ -1,0 +1,6 @@
+{
+    "path-intellisense.mappings": {
+        "@config": "src/config",
+        "@models": "src/models"
+    }
+}
