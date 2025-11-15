@@ -86,24 +86,32 @@ npm install ioredis bullmq
 nextlevel-boilerplate/
 ├── src/
 │   ├── config/
-│   │   ├── database.js          <-- 1 MongoDB connection setup
-│   │   └── index.js             <-- 2 Central config loader (env, db, etc.)
+│   │   ├── database.js 
+│   │   └── index.js    
 │   ├── startup/
-│   │   └── init.js              <-- 3 App initialization (DB, middlewares, routes)
-│   ├── app.js                   <-- 4 Express app instance + middleware pipeline
-│   ├── index.js                 <-- 5 Entry point (starts server)
+│   │   └── init.js     
+│   ├── app.js          
+│   ├── index.js        
 │   ├── routes/
-│   │   └── index.js             <-- 6 Root router + route mounting
+│   │   └── index.js    
 │   ├── controllers/
-│   │   └── auth.controller.js   <-- 7 Request handlers (business logic)
+│   │   └── auth.controller.js
 │   ├── models/
-│   │   └── user.model.js        <-- 8 Mongoose schemas & models
+│   │   └── user.model.js
 │   ├── services/
-│   │   └── auth.service.js      <-- 9 Core logic (auth, user ops, etc.)
+│   │   └── auth.service.js
+│   │   └── user.service.js
+│   │   └── email.service.js
+│   │   └── otp.service.js
+│   │   └── upload.service.js
+│   │   └── cache.service.js
+│   │   └── pagination.service.js
+│   │   └── notification.service.js
+│   │   └── search.service.js
+│   │   └── webhook.service.js
 │   ├── middleware/
-│   │   ├── errorHandler.js      <-- 10 Global error handling
-│   │   ├── validate.js          <-- 11 Joi validation middleware
-│   │   └── auth.js              <-- 12 JWT authentication guard
+│   │   ├── validate.middleware.js
+│   │   └── auth.middleware.js
 │   ├── utils/
 │   │   └── asyncHandler.util.js
 │   │   └── date.util.js
@@ -113,14 +121,14 @@ nextlevel-boilerplate/
 │   │   └── random.util.js
 │   │   └── response.util.js
 │   │   └── string.util.js
-│   └── docs/                    <-- Optional: Swagger/OpenAPI specs
+│   └── docs/           
 │
-├── tests/                       <-- Jest + Supertest unit/integration tests
-├── .env.example                 <-- Environment variables template
-├── .eslintrc.js                 <-- ESLint configuration
-├── .prettierrc                  <-- Code formatting rules
-├── Dockerfile                   <-- Containerize the app
-├── docker-compose.yml           <-- Local dev with MongoDB + Redis (optional)
+├── tests/
+├── .env.example
+├── .eslintrc.js
+├── .prettierrc
+├── Dockerfile
+├── docker-compose.yml
 └── package.json
 ```
 

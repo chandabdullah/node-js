@@ -1,8 +1,8 @@
 import si from 'systeminformation';
-import { ProjectName } from '../constants/constant.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import constants from '../constants/constant.js';
 
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url);
@@ -118,7 +118,7 @@ async function getHealth(req, res) {
 function getHealthPage(req, res) {
     try {
         let htmlContent = fs.readFileSync(healthHTMLPath, 'utf8');
-        htmlContent = htmlContent.replace('PROJECT_NAME', ProjectName);
+        htmlContent = htmlContent.replace('PROJECT_NAME', constants.PROJECT_NAME);
         res.setHeader('Content-Type', 'text/html');
         res.setHeader('Cache-Control', 'no-store');
         res.send(htmlContent);
