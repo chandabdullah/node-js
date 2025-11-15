@@ -1,30 +1,32 @@
 import express from "express";
-import { protect } from "../services/auth.service.js";
-
-// Optional routers (uncomment only if needed)
+import authMiddleware from "../middlewares/auth.middleware.js";
+// Optional routers
 // import adminRouter from "./admin/router.js";
 // import mobileRouter from "./mobile/router.js";
+import { WHITELIST } from "../config/whitelist.js";
 
 const router = express.Router();
 
 // -----------------------------------------------------------------------------
-// 🟢 Whitelisted public routes
-// -----------------------------------------------------------------------------
-const adminWhitelist = ["/login", "/signup"];
-const mobileWhitelist = ["/login", "/signup"];
-
-// -----------------------------------------------------------------------------
-// ⚙️ Admin APIs (only mount if router exists)
+// ⚙️ Admin APIs
 // -----------------------------------------------------------------------------
 if (typeof adminRouter !== "undefined") {
-    router.use("/ap", protect(adminWhitelist), adminRouter);
+    router.use(
+        "/ap",
+        authMiddleware(WHITELIST.admin), // use whitelist from config
+        adminRouter
+    );
 }
 
 // -----------------------------------------------------------------------------
-// ⚙️ Mobile APIs (only mount if router exists)
+// ⚙️ Mobile APIs
 // -----------------------------------------------------------------------------
 if (typeof mobileRouter !== "undefined") {
-    router.use("/ma", protect(mobileWhitelist), mobileRouter);
+    router.use(
+        "/ma",
+        authMiddleware(WHITELIST.mobile), // use whitelist from config
+        mobileRouter
+    );
 }
 
 export default router;

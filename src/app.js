@@ -3,7 +3,8 @@ import helmet from "helmet";
 import cors from "cors";
 import routes from "./routes/index.js";
 import { getHealthPage } from "./startup/health.js";
-import { protect } from "./services/auth.service.js";
+import authMiddleware from "./middlewares/auth.middleware.js";
+import { WHITELIST } from "./config/whitelist.js";
 
 const app = express();
 
@@ -22,10 +23,9 @@ app.get("/health", getHealthPage);
 app.use("/api", helmet());
 
 // -----------------------------
-// Protect APIs
+// Protect APIs with authMiddleware
 // -----------------------------
-const whitelist = ["/login", "/register"]; // Public APIs
-app.use("/api", protect(whitelist), routes);
-
+// Use overall whitelist from config
+app.use("/api", authMiddleware(WHITELIST.overall), routes);
 
 export default app;

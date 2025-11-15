@@ -105,14 +105,13 @@ nextlevel-boilerplate/
 │   │   ├── validate.js          <-- 11 Joi validation middleware
 │   │   └── auth.js              <-- 12 JWT authentication guard
 │   ├── utils/
-│   │   └── response.util.js
+│   │   └── asyncHandler.util.js
+│   │   └── date.util.js
+│   │   └── file.util.js
 │   │   └── jwt.util.js
 │   │   └── password.util.js
-│   │   └── pick.util.js
 │   │   └── random.util.js
-│   │   └── date.util.js
-│   │   └── pagination.util.js
-│   │   └── file.util.js
+│   │   └── response.util.js
 │   │   └── string.util.js
 │   └── docs/                    <-- Optional: Swagger/OpenAPI specs
 │
