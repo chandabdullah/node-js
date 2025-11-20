@@ -1,24 +1,27 @@
 import { StatusCodes } from "http-status-codes";
 import { validationResult, body, param, query } from "express-validator";
-import { generateApiResponse, badWordsCheck } from "../services/utilities.service.js";
+import { generateApiResponse } from "../utils/response.util.js";
 
 /**
  * Generic validator mapping
  * Add more validators here as needed for your project
  */
 const predefinedValidators = {
-  password: (attr) => body(attr)
-    .trim()
-    .notEmpty().withMessage("Password is required.")
-    .isLength({ min: 8 }).withMessage("Password must be at least 8 characters long."),
+  password: (attr, options = {}) => {
+    const validator = body(attr).trim().notEmpty().withMessage("Password is required.");
+    if (!options.skipLengthCheck) {
+      validator.isLength({ min: 8 }).withMessage("Password must be at least 8 characters long.");
+    }
+    return validator;
+  },
 
   name: (attr) => body(attr)
     .trim()
-    .notEmpty().withMessage("Name is required.")
-    .custom((value) => {
-      if (badWordsCheck(value)) throw new Error("Name contains inappropriate language.");
-      return true;
-    }),
+    .notEmpty().withMessage("Name is required."),
+  // .custom((value) => {
+  //   if (badWordsCheck(value)) throw new Error("Name contains inappropriate language.");
+  //   return true;
+  // }),
 
   email: (attr) => body(attr)
     .trim()
@@ -35,13 +38,14 @@ const predefinedValidators = {
  * Returns a validator for any attribute
  * @param {string} attr - Attribute name
  * @param {"body"|"param"|"query"} type - Location of the attribute
+ * @param {object} options - Optional custom options (e.g., skipLengthCheck for password)
  */
-const getValidator = (attr, type = "body") => {
-  if (predefinedValidators[attr]) return predefinedValidators[attr](attr);
+const getValidator = (attr, type = "body", options = {}) => {
+  if (predefinedValidators[attr]) return predefinedValidators[attr](attr, options);
 
   const checker = type === "param" ? param(attr)
-                : type === "query" ? query(attr)
-                : body(attr);
+    : type === "query" ? query(attr)
+      : body(attr);
 
   return checker.trim().notEmpty().withMessage(`${attr} is required.`);
 };
@@ -50,9 +54,10 @@ const getValidator = (attr, type = "body") => {
  * General validation middleware
  * @param {string[]} attributes - List of attribute names to validate
  * @param {"body"|"param"|"query"} type - Where to look for attributes
+ * @param {object} options - Optional settings for specific validators
  */
-export const validate = (attributes = [], type = "body") => {
-  const rules = attributes.map(attr => getValidator(attr, type));
+export const validate = (attributes = [], type = "body", options = {}) => {
+  const rules = attributes.map(attr => getValidator(attr, type, options[attr] || {}));
 
   return [
     ...rules,

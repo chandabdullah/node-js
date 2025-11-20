@@ -1,3 +1,6 @@
+import { StatusCodes } from "http-status-codes";
+import logger from "../config/logger.js";
+
 /**
  * Unified API response generator
  * Handles both success and error responses in a clean, consistent format.
@@ -11,7 +14,7 @@
 export function generateApiResponse(res, statusCode, message, data = {}, isSuccess) {
   const success = typeof isSuccess === "boolean"
     ? isSuccess
-    : statusCode >= 200 && statusCode < 300;
+    : statusCode >= 200 && statusCode < 300;    
 
   return res.status(statusCode).json({
     statusCode,
@@ -22,35 +25,23 @@ export function generateApiResponse(res, statusCode, message, data = {}, isSucce
 }
 
 /**
- * Error response generator with automatic API path formatting
+ * Unified API error response generator
+ * Uses the same signature as generateApiResponse
+ * 
  * @param {Response} res - Express response object
- * @param {Error|string} error - Error object or message
- * @param {object} [extraData={}] - Optional extra data to include in response
+ * @param {number} statusCode - HTTP status code
+ * @param {string|Error} message - Error message
+ * @param {object} [data={}] - Optional additional data
+ * @param {boolean} [isSuccess=false] - Explicit success flag (default false)
  */
-export function generateErrorApiResponse(res, error, extraData = {}) {
-  const apiPath = res.req?.originalUrl || "";
-  const pathSegments = apiPath.split("?")[0].split("/").filter(Boolean);
+export function generateErrorApiResponse(res, statusCode, message, data = {}, isSuccess = false) {
 
-  // Find last static segment (not dynamic like ":id")
-  const lastStaticSegment =
-    pathSegments.reverse().find(seg => !seg.startsWith(":") && isNaN(seg)) || "unknown";
+  const msg = message instanceof Error ? message.message : message;
 
-  // Format: replace hyphens → spaces, capitalize
-  const formattedSegment = lastStaticSegment
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, c => c.toUpperCase());
-
-  const message =
-    typeof error === "string"
-      ? error
-      : `Error occurred while ${formattedSegment.toLowerCase()}`;
-
-  console.error(`[API ERROR] ${apiPath}:`, error?.message || error);
-
-  return res.status(500).json({
-    statusCode: 500,
-    isSuccess: false,
-    message,
-    ...extraData,
+  return res.status(statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({
+    statusCode: statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+    isSuccess,
+    message: msg,
+    ...data,
   });
 }

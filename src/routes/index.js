@@ -1,11 +1,22 @@
 import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
+import { WHITELIST } from "../config/whitelist.js";
+
 // Optional routers
 // import adminRouter from "./admin/router.js";
 // import mobileRouter from "./mobile/router.js";
-import { WHITELIST } from "../config/whitelist.js";
+import authRouter from "./auth.route.js"; 
 
 const router = express.Router();
+
+// -----------------------------------------------------------------------------
+// 🔹 Auth APIs (public or partially whitelisted)
+// -----------------------------------------------------------------------------
+router.use("/auth", authRouter); 
+// Example endpoints: 
+// POST /api/auth/register
+// POST /api/auth/login
+// POST /api/auth/logout
 
 // -----------------------------------------------------------------------------
 // ⚙️ Admin APIs

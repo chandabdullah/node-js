@@ -3,6 +3,8 @@
 export const WHITELIST = {
     overall: [
         "/health",
+        "/auth/register",
+        "/auth/login",
     ],
 
     mobile: [

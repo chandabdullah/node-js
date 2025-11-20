@@ -5,14 +5,14 @@ export class JwtUtils {
     /**
      * Generate a JWT token
      */
-    static generateToken(payload, expiresIn = "7d", secret = appConfig.jwtSecret) {
+    static generateToken(payload, expiresIn = appConfig.jwt.accessExpires, secret = appConfig.jwt.secret) {
         return jwt.sign(payload, secret, { expiresIn });
     }
 
     /**
      * Verify a JWT token
      */
-    static verifyToken(token, secret = appConfig.jwtSecret) {
+    static verifyToken(token, secret = appConfig.jwt.secret) {
         return jwt.verify(token, secret);
     }
 
@@ -27,15 +27,15 @@ export class JwtUtils {
      * Generate Access + Refresh token pair
      */
     static generateTokenPair(payload) {
-        const accessToken = this.generateToken(payload, "1h");
-        const refreshToken = this.generateToken(payload, "7d");
+        const accessToken = this.generateToken(payload, appConfig.jwt.accessExpires);
+        const refreshToken = this.generateToken(payload, appConfig.jwt.refreshExpires);
         return { accessToken, refreshToken };
     }
 
     /**
      * Refresh an expired access token using refresh token
      */
-    static refreshAccessToken(refreshToken, customExpiry = "1h") {
+    static refreshAccessToken(refreshToken, customExpiry = appConfig.jwt.accessExpires) {
         const decoded = this.verifyToken(refreshToken);
         delete decoded.iat;
         delete decoded.exp;
@@ -80,7 +80,7 @@ export class JwtUtils {
     /**
      * Try verifying safely (returns null instead of throwing)
      */
-    static safeVerify(token, secret = appConfig.jwtSecret) {
+    static safeVerify(token, secret = appConfig.jwt.secret) {
         try {
             return jwt.verify(token, secret);
         } catch {
@@ -91,7 +91,7 @@ export class JwtUtils {
     /**
      * Check if token is valid (boolean)
      */
-    static isValid(token, secret = appConfig.jwtSecret) {
+    static isValid(token, secret = appConfig.jwt.secret) {
         return this.safeVerify(token, secret) !== null;
     }
 }

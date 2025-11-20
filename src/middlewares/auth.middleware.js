@@ -1,4 +1,3 @@
-// src/middlewares/auth.middleware.js
 import { JwtUtils } from "../utils/jwt.util.js";
 import { generateErrorApiResponse } from "../utils/response.util.js";
 import logger from "../config/logger.js";
@@ -18,12 +17,12 @@ const authMiddleware = (whitelist = []) => (req, res, next) => {
         const token = JwtUtils.extractBearerToken(authHeader);
 
         if (!token) {
-            return generateErrorApiResponse(res, "Unauthorized: No token provided", { statusCode: 401 });
+            return generateErrorApiResponse(res, 401, "Unauthorized: No token provided");
         }
 
         const decoded = JwtUtils.safeVerify(token);
         if (!decoded) {
-            return generateErrorApiResponse(res, "Unauthorized: Invalid or expired token", { statusCode: 401 });
+            return generateErrorApiResponse(res, 401, "Unauthorized: Invalid or expired token");
         }
 
         // Attach decoded payload
@@ -32,7 +31,7 @@ const authMiddleware = (whitelist = []) => (req, res, next) => {
         next();
     } catch (error) {
         logger.error(`[AuthMiddleware] Error validating token: ${error.message}`);
-        return generateErrorApiResponse(res, "Unauthorized: Token verification failed", { statusCode: 401 });
+        return generateErrorApiResponse(res, 401, "Unauthorized: Token verification failed");
     }
 };
 

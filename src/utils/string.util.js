@@ -1,4 +1,24 @@
 export class StringUtils {
+
+    /**
+     * Generate a username from a name string
+     * @param {string} name - Full name of the user
+     * @returns {string} - Generated username
+     */
+    static generateUsername(name) {
+        if (!name || typeof name !== "string") return `user${Date.now()}`;
+
+        // Take first and last name if available
+        const parts = name.trim().toLowerCase().split(" ");
+        const base = parts.length > 1 ? parts[0] + parts[parts.length - 1] : parts[0];
+
+        // Add random number to reduce collisions
+        const randomNum = Math.floor(100 + Math.random() * 900); // 3-digit number
+
+        return `${base}${randomNum}`;
+    }
+
+
     /** Capitalize first letter */
     static capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -218,5 +238,10 @@ export class StringUtils {
             [arr[i], arr[j]] = [arr[j], arr[i]];
         }
         return arr.join("");
+    }
+
+    /** Bad work checker */
+    static badWordChecker(str) {
+        // 
     }
 }
