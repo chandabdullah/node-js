@@ -5,6 +5,9 @@ export const WHITELIST = {
         "/health",
         "/auth/register",
         "/auth/login",
+        "/auth/logout",
+        // "/auth/refresh-token",
+        // "/auth/me",
     ],
 
     mobile: [

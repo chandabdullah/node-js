@@ -1,7 +1,8 @@
 // src/routes/auth.routes.js
 import express from "express";
 import AuthController from "../controllers/auth.controller.js";
-import { validate } from '../middlewares/validate.middleware.js';
+import authMiddleware from "../middlewares/auth.middleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
 
 const router = express.Router();
 
@@ -12,21 +13,44 @@ const router = express.Router();
 // Register
 router.post(
     "/register",
-    validate(['name', 'email', 'password']),
-    AuthController.register,
+    validate(["name", "email", "password"]),
+    AuthController.register
 );
 
 // Login
 router.post(
     "/login",
-    validate(['email', 'password'], 'body', { password: { skipLengthCheck: true } }),
-    AuthController.login,
+    validate(
+        ["email", "password"],
+        "body",
+        { password: { skipLengthCheck: true } }
+    ),
+    AuthController.login
 );
 
-// Logout
+// Refresh Token
+router.post(
+    "/refresh-token",
+    validate(["refreshToken"]),
+    AuthController.refreshToken
+);
+
+// Logout (current device / session)
 router.post(
     "/logout",
-    AuthController.logout,
+    AuthController.logout
+);
+
+// Logout from ALL devices
+router.post(
+    "/logout-all",
+    AuthController.logoutAll
+);
+
+// Get logged-in user (ME endpoint)
+router.get(
+    "/me",
+    AuthController.getMe
 );
 
 export default router;

@@ -6,7 +6,9 @@ export class JwtUtils {
      * Generate a JWT token
      */
     static generateToken(payload, expiresIn = appConfig.jwt.accessExpires, secret = appConfig.jwt.secret) {
-        return jwt.sign(payload, secret, { expiresIn });
+        const token = jwt.sign(payload, secret, { expiresIn });
+        const verify = jwt.verify(token, secret);
+        return token;
     }
 
     /**
@@ -47,7 +49,7 @@ export class JwtUtils {
      */
     static extractBearerToken(header) {
         if (!header) return null;
-        if (!header.startsWith("Bearer ")) return null;
+        // if (!header.startsWith("Bearer ")) return null;
         return header.split(" ")[1];
     }
 
@@ -80,9 +82,9 @@ export class JwtUtils {
     /**
      * Try verifying safely (returns null instead of throwing)
      */
-    static safeVerify(token, secret = appConfig.jwt.secret) {
+    static safeVerify(token) {
         try {
-            return jwt.verify(token, secret);
+            return this.verifyToken(token);
         } catch {
             return null;
         }
@@ -91,7 +93,7 @@ export class JwtUtils {
     /**
      * Check if token is valid (boolean)
      */
-    static isValid(token, secret = appConfig.jwt.secret) {
-        return this.safeVerify(token, secret) !== null;
+    static isValid(token) {
+        return this.safeVerify(token) !== null;
     }
 }

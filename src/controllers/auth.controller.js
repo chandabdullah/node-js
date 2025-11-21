@@ -1,77 +1,112 @@
-import { User } from '../startup/models.js';
-import { generateApiResponse, generateErrorApiResponse } from '../utils/response.util.js';
-import AuthService from '../services/auth.service.js';
-import { StatusCodes } from 'http-status-codes';
+import { User } from "../startup/models.js";
+import { StatusCodes } from "http-status-codes";
+import AuthService from "../services/auth.service.js";
+import { generateApiResponse, generateErrorApiResponse } from "../utils/response.util.js";
 
 class AuthController {
 
+    /** ---------------------------------------
+     * REGISTER
+     ----------------------------------------*/
     static async register(req, res) {
         const { name, email, password } = req.body;
 
-        // const existing = await User.findOne({ email });
-        // if (existing) {
-        //     return generateApiResponse(res, StatusCodes.CONFLICT, "Email already in use!");
-        // }
-
         const user = await User.create({ name, email, password });
 
-        generateApiResponse(res, 201, "Registration successful", {
+        return generateApiResponse(res, StatusCodes.CREATED, "Registration successful", {
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                username: user.username,
             }
         });
     }
 
+    /** ---------------------------------------
+     * LOGIN
+     ----------------------------------------*/
     static async login(req, res) {
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });
         if (!user) {
-            return generateErrorApiResponse(res, StatusCodes.CONFLICT, "User does not exist with this email");
+            return generateErrorApiResponse(res, StatusCodes.NOT_FOUND, "User does not exist with this email");
         }
 
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
-            return generateErrorApiResponse(res, StatusCodes.CONFLICT, "Incorrect password!");
+            return generateErrorApiResponse(res, StatusCodes.UNAUTHORIZED, "Incorrect password!");
         }
 
+        // Generate token pair + create session
         const tokens = await user.generateAuthToken(req);
 
-        // generateApiResponse(res, 200, "Login successful", {
-        //                 accessToken: tokens.accessToken,
-        //                 refreshToken: tokens.refreshToken,
-        //                 user: {
-        //                     id: user._id,
-        //                     name: user.name,
-        //                     email: user.email,
-        //                     role: user.role
-        //                 }
-        //             });
-        generateApiResponse(
-            res, StatusCodes.OK, "Login Successful",
-            {
-                ...tokens,
-                user: AuthService.getUserPayload(user),
+        return generateApiResponse(res, StatusCodes.OK, "Login successful", {
+            data: {
+                tokens,
+                user: AuthService.getUserPayload(user)
             }
-        )
+        });
     }
 
-    static async logout(req, res) {
+    /** ---------------------------------------
+     * REFRESH TOKEN
+     ----------------------------------------*/
+    static async refreshToken(req, res) {
+        const { refreshToken } = req.body;
+
         try {
-            const { refreshToken } = req.body;
-            if (!refreshToken) {
-                return generateErrorApiResponse(res, "Refresh token is required", { statusCode: 400 });
-            }
-
-            const result = await AuthService.logout(refreshToken);
-
-            generateApiResponse(res, 200, "Logged out successfully", result);
+            const newTokens = await AuthService.refreshToken(refreshToken);
+            return generateApiResponse(res, StatusCodes.OK, "Token refreshed", newTokens);
         } catch (error) {
-            generateErrorApiResponse(res, error);
+            return generateErrorApiResponse(res, StatusCodes.UNAUTHORIZED, error.message);
         }
+    }
+
+    /** ---------------------------------------
+     * LOGOUT (current session)
+     ----------------------------------------*/
+    static async logout(req, res) {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            return generateErrorApiResponse(res, StatusCodes.BAD_REQUEST, "Refresh token is required");
+        }
+
+        await AuthService.logout(refreshToken);
+
+        return generateApiResponse(res, StatusCodes.OK, "Logged out successfully");
+    }
+
+    /** ---------------------------------------
+     * LOGOUT ALL DEVICES
+     ----------------------------------------*/
+    static async logoutAll(req, res) {
+        const userId = req.user.id;
+
+        await AuthService.logoutAll(userId);
+
+        return generateApiResponse(res, StatusCodes.OK, "Logged out from all devices");
+    }
+
+    /** ---------------------------------------
+     * ME (get logged in user)
+     ----------------------------------------*/
+    static async getMe(req, res) {
+
+        const { _id: user } = req.user;
+
+        const foundedUser = await User.findById(user);
+
+        if (!foundedUser) {
+            return generateErrorApiResponse(res, StatusCodes.NOT_FOUND, "User not found");
+        }
+
+        return generateApiResponse(res, StatusCodes.OK, "User details fetched", {
+            user: AuthService.getUserPayload(foundedUser)
+        });
     }
 }
 

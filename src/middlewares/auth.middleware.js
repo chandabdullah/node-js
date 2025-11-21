@@ -2,36 +2,60 @@ import { JwtUtils } from "../utils/jwt.util.js";
 import { generateErrorApiResponse } from "../utils/response.util.js";
 import logger from "../config/logger.js";
 
-/**
- * Middleware to protect API routes with optional whitelist
- * @param {string[]} whitelist - Array of paths that don't require token
- */
+const isWhitelisted = (req, whitelist) => {
+    return whitelist.some((item) => {
+        if (item === req.path) return true;
+
+        if (item.endsWith("/*")) {
+            const base = item.replace("/*", "");
+            return req.path.startsWith(base);
+        }
+
+        return false;
+    });
+};
+
 const authMiddleware = (whitelist = []) => (req, res, next) => {
     try {
-        // Skip token check if route is whitelisted
-        if (whitelist.includes(req.path)) {
+
+        if (isWhitelisted(req, whitelist)) {
             return next();
         }
 
         const authHeader = req.headers.authorization;
-        const token = JwtUtils.extractBearerToken(authHeader);
 
-        if (!token) {
-            return generateErrorApiResponse(res, 401, "Unauthorized: No token provided");
+        if (!authHeader) {
+            return generateErrorApiResponse(res, 401, "Unauthorized: Authorization header missing");
         }
 
+        let token = authHeader;
+
+        // If header starts with Bearer, extract token
+        if (authHeader.startsWith("Bearer ")) {
+            token = authHeader.slice(7).trim();
+        }
+
+        if (!token) {
+            return generateErrorApiResponse(res, 401, "Unauthorized: Token missing");
+        }
+
+        console.log("token: ", token);
+
         const decoded = JwtUtils.safeVerify(token);
+
+        console.log("-- decoded: ", decoded);
+
         if (!decoded) {
             return generateErrorApiResponse(res, 401, "Unauthorized: Invalid or expired token");
         }
 
-        // Attach decoded payload
         req.user = decoded;
+        req.token = token;
 
         next();
     } catch (error) {
-        logger.error(`[AuthMiddleware] Error validating token: ${error.message}`);
-        return generateErrorApiResponse(res, 401, "Unauthorized: Token verification failed");
+        logger.error(`[AuthMiddleware] Token validation error: ${error.message}`);
+        return generateErrorApiResponse(res, 401, "Unauthorized: Token validation failed");
     }
 };
 

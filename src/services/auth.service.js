@@ -1,74 +1,66 @@
+// src/services/auth.service.js
 import Session from "../models/session.model.js";
 import { JwtUtils } from "../utils/jwt.util.js";
 
 class AuthService {
 
     /**
-     * Get User payload
-     * @param {Object} user
+     * User payload for JWT
      */
     static getUserPayload(user) {
-        const payload = {
-            id: user._id,
+        return {
+            _id: user._id,
             email: user.email,
             name: user.name,
             username: user?.username,
             role: user.role,
         };
-        return payload;
     }
 
     /**
-     * Generate Access + Refresh Token Pair + Create Session
-     * @param {Object} user - Mongoose user document
-     * @param {Request} req - Express request object
+     * Generate Access + Refresh Tokens + Create Session
      */
     static async generateAuthTokens(user, req) {
         const payload = this.getUserPayload(user);
 
         const { accessToken, refreshToken } = JwtUtils.generateTokenPair(payload);
 
-        // Save device session (multiple allowed)
+        // Save refresh token per-device session
         await Session.create({
             userId: user._id,
             refreshToken,
             ip: req?.ip,
             userAgent: req?.headers["user-agent"],
+            isActive: true
         });
 
         return { accessToken, refreshToken };
     }
 
     /**
-     * Refresh Token
-     * @param {string} refreshToken 
-     * @returns {Object} new access token
+     * Refresh Token Handler
      */
     static async refreshToken(refreshToken) {
         if (!refreshToken) throw new Error("Refresh token is required");
 
-        // Check if session exists and active
         const session = await Session.findOne({ refreshToken, isActive: true });
         if (!session) throw new Error("Invalid or expired session");
 
-        // Validate refresh token itself
         const decoded = JwtUtils.safeVerify(refreshToken);
         if (!decoded) throw new Error("Invalid or expired refresh token");
 
-        // Issue new access token
-        const newAccessToken = JwtUtils.refreshAccessToken(refreshToken);
-        return { accessToken: newAccessToken };
+        const accessToken = JwtUtils.refreshAccessToken(refreshToken);
+        return { accessToken };
     }
 
     /**
-     * Logout from current device/session
-     * @param {string} refreshToken 
+     * Logout from current device
      */
     static async logout(refreshToken) {
-        if (!refreshToken) {
-            return { message: "Already logged out" };
-        }
-
+        
+        if (!refreshToken) return { message: "Already logged out" };
+        
+        console.log("refreshToken: ", refreshToken);
         await Session.updateOne(
             { refreshToken },
             { $set: { isActive: false } }
@@ -79,7 +71,6 @@ class AuthService {
 
     /**
      * Logout from all devices
-     * @param {ObjectId} userId 
      */
     static async logoutAll(userId) {
         await Session.updateMany(
